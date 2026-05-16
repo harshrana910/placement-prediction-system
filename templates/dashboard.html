@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Dashboard</title>
+
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background: #f4f4f4;
+            padding: 20px;
+        }
+
+        h1{
+            text-align: center;
+        }
+
+        .stats{
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
+
+        .card{
+            background: white;
+            padding: 20px;
+            width: 220px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+
+        table{
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 30px;
+        }
+
+        th, td{
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th{
+            background: #007bff;
+            color: white;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <h1>Placement Prediction Dashboard</h1>
+
+    <div class="stats">
+
+        <div class="card">
+            <h2>Total Predictions</h2>
+            <h1>{{ total_predictions }}</h1>
+        </div>
+
+        <div class="card">
+            <h2>Placed</h2>
+            <h1>{{ placed_count }}</h1>
+        </div>
+
+        <div class="card">
+            <h2>Not Placed</h2>
+            <h1>{{ not_placed_count }}</h1>
+        </div>
+
+    </div>
+
+    <table>
+
+        <tr>
+            <th>ID</th>
+            <th>CGPA</th>
+            <th>Internships</th>
+            <th>Projects</th>
+            <th>Prediction</th>
+            <th>Probability</th>
+            <th>Created At</th>
+        </tr>
+
+        {% for row in rows %}
+
+        <tr>
+
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td>{{ row[3] }}</td>
+            <td>{{ row[8] }}</td>
+            <td>{{ row[9] }}%</td>
+            <td>{{ row[10] }}</td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+</body>
+
+</html>
