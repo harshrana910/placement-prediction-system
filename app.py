@@ -1,30 +1,22 @@
 from flask import Flask, request, jsonify, render_template
 import pickle
 import numpy as np
-import mysql.connector
 
-#Create Flask app
+# Create Flask app
 app = Flask(__name__)
 
-#Load Model
-model = pickle.load(open("placement_model.pkl","rb"))
+# Load Model
+model = pickle.load(open("placement_model.pkl", "rb"))
 
-#mysql connection
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="placement"
-)
+# Temporary storage for dashboard
+predictions_data = []
 
-cursor = db.cursor()
-
-#Home route
+# Home route
 @app.route("/")
 def home():
     return "Placement Prediction API Running..."
 
-#Test route
+# Test route
 @app.route("/test")
 def test():
     sample_data = np.array([[8.7, 2, 4, 1, 3, 85, 8]])
@@ -32,12 +24,12 @@ def test():
     prediction = model.predict(sample_data)
 
     result = "Placed" if prediction[0] == 1 else "Not Placed"
-    
+
     return jsonify({
         "prediction": result
     })
 
-#Frontend form route
+# Frontend form route
 @app.route("/form")
 def form():
     return render_template("index.html")
@@ -60,24 +52,32 @@ def predict():
     prediction = model.predict(features)
 
     result = "Placed" if prediction[0] == 1 else "Not Placed"
-    
+
     return jsonify({
         "prediction": result
     })
 
-#HTML form prediction route
+# HTML form prediction route
 @app.route("/predict_form", methods=["POST"])
 def predict_form():
 
+    cgpa = float(request.form["CGPA"])
+    internships = int(request.form["Internships"])
+    projects = int(request.form["Projects"])
+    workshops = int(request.form["Workshops"])
+    certifications = int(request.form["Certifications"])
+    aptitude = int(request.form["AptitudeScore"])
+    softskills = int(request.form["SoftSkillsRating"])
+
     features = np.array([[
 
-        float(request.form["CGPA"]),
-        int(request.form["Internships"]),
-        int(request.form["Projects"]),
-        int(request.form["Workshops"]),
-        int(request.form["Certifications"]),
-        int(request.form["AptitudeScore"]),
-        int(request.form["SoftSkillsRating"])
+        cgpa,
+        internships,
+        projects,
+        workshops,
+        certifications,
+        aptitude,
+        softskills
 
     ]])
 
@@ -92,79 +92,47 @@ def predict_form():
     # Result
     result = "Placed ✅" if prediction[0] == 1 else "Not Placed ❌"
 
-    # -----------------------------------
-    # SAVE DATA INTO MYSQL
-    # -----------------------------------
-
-    sql = """
-    INSERT INTO predictions (
-        cgpa,
-        internships,
-        projects,
-        workshops,
-        certifications,
-        aptitude_score,
-        soft_skills_rating,
-        prediction,
-        probability
-    )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """
-
-    values = (
-        float(request.form["CGPA"]),
-        int(request.form["Internships"]),
-        int(request.form["Projects"]),
-        int(request.form["Workshops"]),
-        int(request.form["Certifications"]),
-        int(request.form["AptitudeScore"]),
-        int(request.form["SoftSkillsRating"]),
-        result,
-        placement_probability
-    )
-
-    cursor.execute(sql, values)
-
-    db.commit()
-
-    # -----------------------------------
-    # RETURN RESULT TO HTML
-    # -----------------------------------
+    # Save into temporary list
+    predictions_data.append({
+        "cgpa": cgpa,
+        "internships": internships,
+        "projects": projects,
+        "prediction": result,
+        "probability": placement_probability
+    })
 
     return render_template(
         "index.html",
         prediction_text=f"""
-    Prediction Result: {result}
+Prediction Result: {result}
 
-    Placement Probability: {placement_probability:.2f}%
-    """
+Placement Probability: {placement_probability:.2f}%
+"""
     )
 
+# Dashboard route
 @app.route("/dashboard")
 def dashboard():
-    cursor.execute("SELECT * FROM predictions")
-    rows = cursor.fetchall()
 
     placed_count = 0
     not_placed_count = 0
 
-    for row in rows:
-        if "Placed" in row[8] and "Not" not in row[8]:
+    for row in predictions_data:
+        if "Placed" in row["prediction"] and "Not" not in row["prediction"]:
             placed_count += 1
         else:
             not_placed_count += 1
-    total_predictions = len(rows)
+
+    total_predictions = len(predictions_data)
 
     return render_template(
         "dashboard.html",
-        rows=rows,
+        rows=predictions_data,
         placed_count=placed_count,
         not_placed_count=not_placed_count,
         total_predictions=total_predictions
     )
 
-#Run server
+# Run server
 if __name__ == "__main__":
     app.run(debug=True)
-
-
