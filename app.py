@@ -14,7 +14,7 @@ predictions_data = []
 # Home route
 @app.route("/")
 def home():
-    return "Placement Prediction API Running..."
+    return render_template("index.html")
 
 # Test route
 @app.route("/test")
@@ -30,9 +30,9 @@ def test():
     })
 
 # Frontend form route
-@app.route("/form")
-def form():
-    return render_template("index.html")
+#@app.route("/form")
+#def form():
+    #return render_template("index.html")
 
 # API Prediction Route
 @app.route("/predict", methods=["POST"])
