@@ -81,26 +81,22 @@
     <table>
 
         <tr>
-            <th>ID</th>
             <th>CGPA</th>
             <th>Internships</th>
             <th>Projects</th>
             <th>Prediction</th>
             <th>Probability</th>
-            <th>Created At</th>
         </tr>
 
         {% for row in rows %}
 
         <tr>
 
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-            <td>{{ row[2] }}</td>
-            <td>{{ row[3] }}</td>
-            <td>{{ row[8] }}</td>
-            <td>{{ row[9] }}%</td>
-            <td>{{ row[10] }}</td>
+            <td>{{ row["cgpa"] }}</td>
+            <td>{{ row["internships"] }}</td>
+            <td>{{ row["projects"] }}</td>
+            <td>{{ row["prediction"] }}</td>
+            <td>{{ "%.2f"|format(row["probability"]) }}%</td>
 
         </tr>
 
