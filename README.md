@@ -1,26 +1,24 @@
-# 🎓 Placement Prediction System
+# 🚀 Placement Prediction System
 
-A Machine Learning-based web application that predicts whether a student is likely to be placed based on academic performance and skill-related factors.
+A modern Machine Learning-powered web application that predicts whether a student is likely to be placed based on academic performance, internships, projects, certifications, aptitude score, and soft skills.
 
----
-
-## 🚀 Project Overview
-
-The Placement Prediction System helps estimate a student's placement chances using a trained Machine Learning model. Users enter student details through a simple Flask web interface, and the model predicts the placement outcome.
+Built using **Python, Flask, Scikit-learn, MySQL, HTML, CSS, and JavaScript**, this project demonstrates the complete Machine Learning workflow from data preprocessing to deployment.
 
 ---
 
-## ✨ Features
+# 🌟 Features
 
-- Predicts student placement status
-- User-friendly Flask web interface
-- Machine Learning model using Logistic Regression
-- Data preprocessing and feature engineering
-- Fast and simple prediction system
+- 🎯 Predict placement chances using Machine Learning
+- 📊 Interactive and modern user interface
+- 🧠 Logistic Regression prediction model
+- 📈 Placement probability prediction
+- 🗄️ MySQL database integration
+- 📋 Dashboard to view prediction history
+- 📱 Fully responsive design
 
 ---
 
-## 🛠️ Tech Stack
+# 🛠 Tech Stack
 
 - Python
 - Flask
@@ -28,95 +26,153 @@ The Placement Prediction System helps estimate a student's placement chances usi
 - Pandas
 - NumPy
 - MySQL
-- HTML
-- CSS
+- HTML5
+- CSS3
+- JavaScript
 
 ---
 
-## 📊 Machine Learning Workflow
-
-Dataset
-→ Data Cleaning
-→ Exploratory Data Analysis (EDA)
-→ Feature Engineering
-→ Train-Test Split
-→ Logistic Regression
-→ Model Evaluation
-→ Flask Deployment
-
----
-
-## 📈 Model Performance
-
-- Model: Logistic Regression
-- Accuracy: **88%**
-
----
-
-## 📂 Project Structure
+# 📂 Project Structure
 
 ```
-placement-prediction-system/
+Placement-Prediction-System/
 │
-├── app.py
-├── model.py
-├── placement_model.pkl
-├── requirements.txt
-├── templates/
 ├── static/
+│   ├── css/
+│   └── js/
+│
+├── templates/
+│   ├── index.html
+│   └── dashboard.html
+│
 ├── screenshots/
-├── dataset/
+│
+├── placement_model.pkl
+├── app.py
+├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## 📸 Screenshots
+# 📷 Project Screenshots
 
-### Home Page
+## 🏠 Home Page
 
-(Add screenshot here)
-
-### Prediction Result
-
-(Add screenshot here)
-
-### Confusion Matrix
-
-(Add screenshot here)
+![Home](screenshots/home.png)
 
 ---
 
-## ⚙️ Installation
+## ✍️ Prediction Form
+
+![Prediction](screenshots/prediction.png)
+
+---
+
+## ✅ Prediction Result
+
+![Result](screenshots/result.png)
+
+---
+
+## 📊 Dashboard
+
+![Dashboard](screenshots/dashboard.png)
+
+---
+
+## 🗄️ Database
+
+![Database](screenshots/database.png)
+
+---
+
+## 📉 EDA
+
+![EDA](screenshots/eda.png)
+
+---
+
+## 🤖 Model Performance
+
+![Model Performance](screenshots/model_performance.png)
+
+---
+
+## 📌 Confusion Matrix
+
+![Confusion Matrix](screenshots/confusion_matrix.png)
+
+---
+
+# 📈 Model Information
+
+Algorithm Used
+
+- Logistic Regression
+
+Model Accuracy
+
+- **88%**
+
+Evaluation Metrics
+
+- Accuracy Score
+- Confusion Matrix
+
+---
+
+# ⚙️ Installation
+
+Clone the repository
 
 ```bash
 git clone https://github.com/harshrana910/placement-prediction-system.git
+```
 
+Move into the project
+
+```bash
 cd placement-prediction-system
+```
 
+Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
+Run Flask application
+
+```bash
 python app.py
 ```
 
 ---
 
-## 🔮 Future Improvements
+# Future Improvements
 
-- Compare multiple ML models
-- Improve UI/UX
-- Deploy on AWS
-- Add probability score
-- Use larger real-world datasets
+- Random Forest
+- XGBoost
+- User Authentication
+- Cloud Deployment
+- Email Notifications
+- Analytics Dashboard
 
 ---
 
-## 👨‍💻 Author
+# 👨‍💻 Author
 
 **Harsh Rana**
 
 MSc IT (Data Analytics & AI)
 
-LinkedIn: (Add your LinkedIn profile)
+GitHub:
+https://github.com/harshrana910
 
-GitHub: https://github.com/harshrana910
+LinkedIn:
+https://linkedin.com/in/harshrana2004
+
+---
+
+⭐ If you like this project, don't forget to star the repository.
