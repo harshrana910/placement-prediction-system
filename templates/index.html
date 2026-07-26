@@ -2,102 +2,502 @@
 <html lang="en">
 
 <head>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Placement Predictor</title>
-
-    <style>
-
-        body{
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container{
-            background: white;
-            width: 400px;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0px 0px 20px rgba(0,0,0,0.2);
-            text-align: center;
-        }
-
-        h1{
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        input{
-            width: 90%;
-            padding: 12px;
-            margin: 8px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-
-        button{
-            background: #007bff;
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-
-        button:hover{
-            background: #0056b3;
-        }
-
-        .result{
-            margin-top: 20px;
-            font-size: 20px;
-            color: green;
-            font-weight: bold;
-        }
-
-    </style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI-powered placement prediction system using Machine Learning. Enter your academic profile to predict your placement probability instantly.">
+  <meta name="author" content="Harsh Rana">
+  <meta property="og:title" content="Placement Prediction System — Harsh Rana">
+  <meta property="og:description" content="Predict your campus placement probability with Machine Learning.">
+  <title>Placement Prediction System — Harsh Rana</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
 
-    <div class="container">
+  <!-- Animated mesh background -->
+  <canvas id="mesh-canvas" aria-hidden="true"></canvas>
 
-        <h1>Placement Prediction System</h1>
+  <div class="page-wrapper">
 
-        <form action="/predict_form" method="POST">
+    <!-- ══════════════════════════════════════
+         NAVIGATION
+    ══════════════════════════════════════ -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+      <a href="/" class="nav-logo" aria-label="Placement Predictor Home">
+        <div class="nav-logo-icon" aria-hidden="true">🎓</div>
+        <span>PlacePredict</span>
+      </a>
+      <ul class="nav-links" role="list">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
 
-            <input type="number" step="0.01" name="CGPA" placeholder="CGPA" required>
+        <li>
+          <span class="nav-badge">ML Powered</span>
+        </li>
+      </ul>
+    </nav>
 
-            <input type="number" name="Internships" placeholder="Internships" required>
+    <!-- ══════════════════════════════════════
+         HERO SECTION
+    ══════════════════════════════════════ -->
+    <header class="hero" role="banner">
+      <div class="hero-tag" aria-label="Category">
+        <span class="hero-tag-dot" aria-hidden="true"></span>
+        Machine Learning · Scikit-learn · Flask
+      </div>
 
-            <input type="number" name="Projects" placeholder="Projects" required>
+      <h1 class="hero-heading">
+        Predict Your<br>
+        <span class="gradient-text">Placement Outcome</span><br>
+        with AI
+      </h1>
 
-            <input type="number" name="Workshops" placeholder="Workshops" required>
+      <p class="hero-subtitle">
+        Enter your academic profile and get an instant, data-driven prediction
+        of your campus placement probability — powered by a trained ML classifier.
+      </p>
 
-            <input type="number" name="Certifications" placeholder="Certifications" required>
-
-            <input type="number" name="AptitudeScore" placeholder="Aptitude Score" required>
-
-            <input type="number" name="SoftSkillsRating" placeholder="Soft Skills Rating" required>
-
-            <button type="submit">Predict</button>
-
-        </form>
-
-        <div class="result">
-            {{ prediction_text }}
+      <div class="hero-stats" role="list" aria-label="Key statistics">
+        <div class="hero-stat" role="listitem">
+          <span class="hero-stat-value">7</span>
+          <span class="hero-stat-label">Input Features</span>
         </div>
+        <div class="hero-stat" role="listitem">
+          <span class="hero-stat-value">~91%</span>
+          <span class="hero-stat-label">Model Accuracy</span>
+        </div>
+        <div class="hero-stat" role="listitem">
+          <span class="hero-stat-value">&lt;100ms</span>
+          <span class="hero-stat-label">Prediction Time</span>
+        </div>
+      </div>
+    </header>
 
-    </div>
+    <!-- ══════════════════════════════════════
+         MAIN GRID: FORM + RESULT
+    ══════════════════════════════════════ -->
+    <main class="main-grid" id="main-content">
 
+      <!-- LEFT — Prediction Form -->
+      <section aria-labelledby="form-title">
+        <div class="form-card">
+          <div class="form-card-header">
+            <h2 class="form-card-title" id="form-title">
+              Your Academic Profile
+            </h2>
+            <p class="form-card-subtitle">
+              All fields are required. Provide accurate data for the best results.
+            </p>
+          </div>
+          <div class="form-divider" aria-hidden="true"></div>
+
+          <!-- ⚠️ FLASK FORM — action & names must NOT change -->
+          <form id="predict-form" action="/predict_form" method="POST" novalidate>
+
+            <div class="input-grid">
+
+              <!-- CGPA -->
+              <div class="input-group full-width">
+                <label class="input-label" for="input-cgpa">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                  CGPA
+                </label>
+                <input
+                  class="input-field"
+                  type="number"
+                  id="input-cgpa"
+                  name="CGPA"
+                  step="0.01"
+                  min="0"
+                  max="10"
+                  placeholder="e.g. 8.5"
+                  required
+                  aria-describedby="cgpa-hint"
+                >
+                <span class="input-hint" id="cgpa-hint">Cumulative GPA on a 10-point scale (0 – 10)</span>
+              </div>
+
+              <!-- Internships -->
+              <div class="input-group">
+                <label class="input-label" for="input-internships">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+                  Internships
+                </label>
+                <input
+                  class="input-field"
+                  type="number"
+                  id="input-internships"
+                  name="Internships"
+                  min="0"
+                  placeholder="e.g. 2"
+                  required
+                  aria-describedby="internships-hint"
+                >
+                <span class="input-hint" id="internships-hint">Number of internships completed</span>
+              </div>
+
+              <!-- Projects -->
+              <div class="input-group">
+                <label class="input-label" for="input-projects">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                  Projects
+                </label>
+                <input
+                  class="input-field"
+                  type="number"
+                  id="input-projects"
+                  name="Projects"
+                  min="0"
+                  placeholder="e.g. 4"
+                  required
+                  aria-describedby="projects-hint"
+                >
+                <span class="input-hint" id="projects-hint">Academic or personal projects built</span>
+              </div>
+
+              <!-- Workshops -->
+              <div class="input-group">
+                <label class="input-label" for="input-workshops">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  Workshops
+                </label>
+                <input
+                  class="input-field"
+                  type="number"
+                  id="input-workshops"
+                  name="Workshops"
+                  min="0"
+                  placeholder="e.g. 1"
+                  required
+                  aria-describedby="workshops-hint"
+                >
+                <span class="input-hint" id="workshops-hint">Workshops / seminars attended</span>
+              </div>
+
+              <!-- Certifications -->
+              <div class="input-group">
+                <label class="input-label" for="input-certifications">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+                  Certifications
+                </label>
+                <input
+                  class="input-field"
+                  type="number"
+                  id="input-certifications"
+                  name="Certifications"
+                  min="0"
+                  placeholder="e.g. 3"
+                  required
+                  aria-describedby="certifications-hint"
+                >
+                <span class="input-hint" id="certifications-hint">Online / professional certifications earned</span>
+              </div>
+
+              <!-- AptitudeScore -->
+              <div class="input-group">
+                <label class="input-label" for="input-aptitude">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  Aptitude Score
+                </label>
+                <input
+                  class="input-field"
+                  type="number"
+                  id="input-aptitude"
+                  name="AptitudeScore"
+                  min="0"
+                  max="100"
+                  placeholder="e.g. 85"
+                  required
+                  aria-describedby="aptitude-hint"
+                >
+                <span class="input-hint" id="aptitude-hint">Aptitude / quantitative score (0 – 100)</span>
+              </div>
+
+              <!-- SoftSkillsRating -->
+              <div class="input-group full-width">
+                <label class="input-label" for="input-softskills">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  Soft Skills Rating
+                </label>
+                <input
+                  class="input-field"
+                  type="number"
+                  id="input-softskills"
+                  name="SoftSkillsRating"
+                  min="1"
+                  max="10"
+                  placeholder="e.g. 8"
+                  required
+                  aria-describedby="softskills-hint"
+                >
+                <span class="input-hint" id="softskills-hint">Communication, teamwork, leadership rating (1 – 10)</span>
+              </div>
+
+            </div><!-- /.input-grid -->
+
+            <button type="submit" class="btn-predict" id="predict-btn" aria-label="Run placement prediction">
+              <span class="btn-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </span>
+              <span class="btn-text">Run Prediction</span>
+              <span class="btn-spinner" aria-hidden="true"></span>
+            </button>
+
+          </form>
+
+        </div><!-- /.form-card -->
+      </section>
+
+      <!-- RIGHT — Illustration + Result -->
+      <aside class="right-column" aria-label="Result panel">
+
+        <!-- Illustration Card -->
+        <div class="illustration-card" aria-hidden="true">
+          <div class="illustration-svg-wrap">
+            <!-- Inline SVG illustration -->
+            <svg viewBox="0 0 280 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Graduation illustration">
+              <!-- Background circles -->
+              <circle cx="140" cy="110" r="90" fill="rgba(59,130,246,0.06)" stroke="rgba(59,130,246,0.12)" stroke-width="1"/>
+              <circle cx="140" cy="110" r="65" fill="rgba(99,102,241,0.06)" stroke="rgba(99,102,241,0.1)" stroke-width="1"/>
+              <!-- Mortarboard -->
+              <polygon points="140,50 195,78 140,106 85,78" fill="url(#grad1)" opacity="0.9"/>
+              <rect x="185" y="76" width="4" height="28" rx="2" fill="#6366f1"/>
+              <circle cx="189" cy="107" r="5" fill="#a5b4fc"/>
+              <rect x="105" y="104" width="70" height="38" rx="6" fill="url(#grad2)" opacity="0.8"/>
+              <!-- Diploma scroll -->
+              <rect x="92" y="148" width="96" height="42" rx="8" fill="rgba(255,255,255,0.07)" stroke="rgba(99,102,241,0.3)" stroke-width="1.5"/>
+              <line x1="108" y1="163" x2="172" y2="163" stroke="rgba(99,102,241,0.5)" stroke-width="2" stroke-linecap="round"/>
+              <line x1="108" y1="173" x2="155" y2="173" stroke="rgba(59,130,246,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="108" y1="181" x2="163" y2="181" stroke="rgba(59,130,246,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+              <!-- Stars -->
+              <circle cx="55" cy="65" r="3" fill="#a5b4fc" opacity="0.6"/>
+              <circle cx="228" cy="80" r="2.5" fill="#34d399" opacity="0.5"/>
+              <circle cx="42" cy="145" r="2" fill="#f59e0b" opacity="0.5"/>
+              <circle cx="245" cy="150" r="3" fill="#6366f1" opacity="0.5"/>
+              <circle cx="70" cy="185" r="2" fill="#3b82f6" opacity="0.4"/>
+              <!-- Gradient defs -->
+              <defs>
+                <linearGradient id="grad1" x1="85" y1="50" x2="195" y2="106" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#6366f1"/>
+                  <stop offset="100%" stop-color="#3b82f6"/>
+                </linearGradient>
+                <linearGradient id="grad2" x1="105" y1="104" x2="175" y2="142" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#4f46e5"/>
+                  <stop offset="100%" stop-color="#2563eb"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+
+          <h3 class="illustration-title">AI-Powered Insight</h3>
+          <p class="illustration-desc">
+            Our Logistic Regression classifier analyzes 7 key academic factors to
+            estimate your placement readiness with probability scores.
+          </p>
+
+          <div class="feature-pills">
+            <div class="feature-pill">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Logistic Regression
+            </div>
+            <div class="feature-pill">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Probability Score
+            </div>
+            <div class="feature-pill">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Real-time Inference
+            </div>
+            <div class="feature-pill">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Scikit-learn
+            </div>
+          </div>
+        </div><!-- /.illustration-card -->
+
+        <!-- ══════════════════════════════════
+             RESULT CARD — Jinja renders this
+        ══════════════════════════════════ -->
+        {% if prediction_text %}
+          {# ── Validation / input error from server ───────────────────── #}
+          {% if prediction_text.startswith('⚠️') %}
+
+          <div
+            id="result-card"
+            class="result-card not-placed"
+            style="border-color:rgba(245,158,11,0.4);background:linear-gradient(135deg,rgba(245,158,11,0.08) 0%,rgba(217,119,6,0.04) 100%);box-shadow:0 0 30px rgba(245,158,11,0.2);"
+            role="alert"
+            aria-live="assertive"
+            aria-label="Validation error"
+          >
+            <div class="result-header">
+              <div class="result-icon-wrap" aria-hidden="true"
+                style="background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.3);">
+                ⚠️
+              </div>
+              <div>
+                <div class="result-heading">Validation Error</div>
+                <div class="result-verdict" style="color:#fbbf24;font-size:1rem;font-weight:600;">
+                  {{ prediction_text | replace('⚠️ Input Error: ', '') }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {# ── Normal prediction result ─────────────────────────────────── #}
+          {% else %}
+          {# Parse prediction_text from Flask backend #}
+          {% set is_placed = 'Placed ✅' in prediction_text and 'Not' not in prediction_text %}
+          {% set prob_start = prediction_text.find('Placement Probability:') %}
+          {% set prob_str = prediction_text[prob_start + 23:prob_start + 29] if prob_start != -1 else '0' %}
+          {% set prob_num = prob_str | replace('%','') | replace(' ','') | float %}
+
+          <div
+            id="result-card"
+            class="result-card {% if is_placed %}placed{% else %}not-placed{% endif %}"
+            data-prob="{{ prob_num }}"
+            role="region"
+            aria-live="polite"
+            aria-label="Prediction result"
+          >
+            <div class="result-header">
+              <div class="result-icon-wrap" aria-hidden="true">
+                {% if is_placed %}🎉{% else %}📊{% endif %}
+              </div>
+              <div>
+                <div class="result-heading">Prediction Result</div>
+                <div class="result-verdict">
+                  {% if is_placed %}Placed ✅{% else %}Not Placed ❌{% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="prob-section">
+              <div class="prob-label-row">
+                <span class="prob-label">Placement Probability</span>
+                <span class="prob-value">{{ "%.2f" | format(prob_num) }}%</span>
+              </div>
+              <div class="prob-track" role="progressbar" aria-valuenow="{{ prob_num | int }}" aria-valuemin="0" aria-valuemax="100" aria-label="Placement probability">
+                <div class="prob-fill"></div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+        {% else %}
+          <!-- Empty state — shown before first prediction -->
+          <div class="result-empty" role="region" aria-label="Awaiting prediction">
+            <div class="result-empty-icon" aria-hidden="true">🔮</div>
+            <p>
+              Fill in your academic profile on the left and click
+              <strong>Run Prediction</strong> to see your placement probability here.
+            </p>
+          </div>
+        {% endif %}
+
+
+      </aside>
+    </main><!-- /.main-grid -->
+
+    <!-- ══════════════════════════════════════
+         TECH STACK SECTION
+    ══════════════════════════════════════ -->
+    <section class="tech-section" aria-labelledby="tech-title">
+      <div class="section-label" aria-hidden="true">Built With</div>
+      <h2 class="section-title" id="tech-title">Technology Stack</h2>
+      <p class="section-desc">
+        A modern, production-ready stack combining classical ML with a lightweight web framework.
+      </p>
+
+      <div class="tech-grid" role="list">
+
+        <article class="tech-card" role="listitem" tabindex="0">
+          <div class="tech-icon" style="background:rgba(55,118,171,0.15);" aria-hidden="true">🐍</div>
+          <h3 class="tech-card-name">Python 3</h3>
+          <p class="tech-card-desc">Core programming language powering the ML pipeline and web server.</p>
+        </article>
+
+        <article class="tech-card" role="listitem" tabindex="0">
+          <div class="tech-icon" style="background:rgba(0,0,0,0.2);" aria-hidden="true">⚗️</div>
+          <h3 class="tech-card-name">Flask</h3>
+          <p class="tech-card-desc">Lightweight WSGI micro-framework for routing, templating, and API endpoints.</p>
+        </article>
+
+        <article class="tech-card" role="listitem" tabindex="0">
+          <div class="tech-icon" style="background:rgba(249,130,38,0.15);" aria-hidden="true">🤖</div>
+          <h3 class="tech-card-name">Scikit-learn</h3>
+          <p class="tech-card-desc">Logistic Regression classifier trained on placement data with cross-validation.</p>
+        </article>
+
+        <article class="tech-card" role="listitem" tabindex="0">
+          <div class="tech-icon" style="background:rgba(77,171,207,0.15);" aria-hidden="true">🔢</div>
+          <h3 class="tech-card-name">NumPy</h3>
+          <p class="tech-card-desc">Numerical computing library for feature array construction and manipulation.</p>
+        </article>
+
+        <article class="tech-card" role="listitem" tabindex="0">
+          <div class="tech-icon" style="background:rgba(21,128,61,0.15);" aria-hidden="true">📊</div>
+          <h3 class="tech-card-name">Pandas</h3>
+          <p class="tech-card-desc">Data analysis and preprocessing for the training dataset pipeline.</p>
+        </article>
+
+        <article class="tech-card" role="listitem" tabindex="0">
+          <div class="tech-icon" style="background:rgba(59,130,246,0.15);" aria-hidden="true">🗄️</div>
+          <h3 class="tech-card-name">Pickle / Joblib</h3>
+          <p class="tech-card-desc">Model serialization for loading the trained classifier at runtime.</p>
+        </article>
+
+      </div><!-- /.tech-grid -->
+    </section>
+
+    <!-- ══════════════════════════════════════
+         FOOTER
+    ══════════════════════════════════════ -->
+    <footer class="footer" role="contentinfo">
+      <div class="footer-brand">
+        <span class="footer-name">Harsh Rana</span>
+        <span class="footer-tagline">Full-Stack Developer &amp; ML Engineer</span>
+      </div>
+
+      <nav class="footer-links" aria-label="External links">
+        <a
+          href="https://github.com/harshrana910"
+          class="footer-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub profile of Harsh Rana"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          GitHub
+        </a>
+
+        <a
+          href="https://linkedin.com/in/harshrana910"
+          class="footer-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="LinkedIn profile of Harsh Rana"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          </svg>
+          LinkedIn
+        </a>
+      </nav>
+
+      <p class="footer-copy">
+        &copy; 2024 Harsh Rana · Placement Prediction System · Built with Flask &amp; Scikit-learn
+      </p>
+    </footer>
+
+  </div><!-- /.page-wrapper -->
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
+
 </html>

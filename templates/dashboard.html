@@ -1,109 +1,358 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-
-    <title>Dashboard</title>
-
-
-    <style>
-
-        body{
-            font-family: Arial;
-            background: #f4f4f4;
-            padding: 20px;
-        }
-
-        h1{
-            text-align: center;
-        }
-
-        .stats{
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 30px;
-        }
-
-        .card{
-            background: white;
-            padding: 20px;
-            width: 220px;
-            text-align: center;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
-        }
-
-        table{
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            margin-top: 30px;
-        }
-
-        th, td{
-            padding: 12px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
-
-        th{
-            background: #007bff;
-            color: white;
-        }
-
-    </style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Analytics dashboard for Placement Prediction System. Persistent prediction history stored in MySQL.">
+  <meta name="author" content="Harsh Rana">
+  <title>Analytics Dashboard — Placement Prediction System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
 
-    <h1>Placement Prediction Dashboard</h1>
+  <!-- Animated mesh background -->
+  <canvas id="mesh-canvas" aria-hidden="true"></canvas>
 
-    <div class="stats">
+  <div class="page-wrapper">
 
-        <div class="card">
-            <h2>Total Predictions</h2>
-            <h1>{{ total_predictions }}</h1>
+    <!-- ══════════════════════════════════════
+         NAVIGATION
+    ══════════════════════════════════════ -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+      <a href="/" class="nav-logo" aria-label="Placement Predictor Home">
+        <div class="nav-logo-icon" aria-hidden="true">🎓</div>
+        <span>PlacePredict</span>
+      </a>
+      <ul class="nav-links" role="list">
+        <li>
+          <a href="/" class="back-link" aria-label="Back to prediction form">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            </svg>
+            Back to Predictor
+          </a>
+        </li>
+        <li>
+          <span class="nav-badge">MySQL Persistent</span>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- ══════════════════════════════════════
+         DASHBOARD CONTENT
+    ══════════════════════════════════════ -->
+    <main class="dashboard-page" role="main">
+
+      <!-- Header -->
+      <header class="dashboard-header">
+        <div class="hero-tag" style="margin-bottom: var(--space-4);" aria-hidden="true">
+          <span class="hero-tag-dot"></span>
+          MySQL · Persistent Storage
         </div>
+        <h1 class="dashboard-title">
+          Analytics <span class="text-gradient">Dashboard</span>
+        </h1>
+        <p class="dashboard-subtitle">
+          Persistent overview of all placement predictions stored in MySQL — survives server restarts.
+        </p>
+      </header>
 
-        <div class="card">
-            <h2>Placed</h2>
-            <h1>{{ placed_count }}</h1>
+      <!-- ── Database Error Banner ── -->
+      <!-- Shown when MySQL is unavailable; page still loads cleanly -->
+      {% if db_error %}
+        <div class="db-error-banner" role="alert" aria-live="assertive">
+          <span class="db-error-icon" aria-hidden="true">⚠️</span>
+          <div class="db-error-body">
+            <strong>Database Unavailable</strong>
+            <p>{{ db_error }}</p>
+          </div>
         </div>
+      {% endif %}
 
-        <div class="card">
-            <h2>Not Placed</h2>
-            <h1>{{ not_placed_count }}</h1>
+      <!-- ── Stat Cards ── -->
+      <section aria-labelledby="stats-title">
+        <h2 class="sr-only" id="stats-title">Prediction Statistics</h2>
+        <div class="stats-grid" role="list">
+
+          <div class="stat-card total" role="listitem">
+            <span class="stat-card-icon" aria-hidden="true">📈</span>
+            <div
+              class="stat-card-value"
+              data-count="{{ total_predictions }}"
+              aria-label="Total predictions: {{ total_predictions }}"
+            >{{ total_predictions }}</div>
+            <div class="stat-card-label">&nbsp;&nbsp;Total Predictions</div>
+          </div>
+
+          <div class="stat-card placed" role="listitem">
+            <span class="stat-card-icon" aria-hidden="true">✅</span>
+            <div
+              class="stat-card-value"
+              data-count="{{ placed_count }}"
+              aria-label="Placed count: {{ placed_count }}"
+            >{{ placed_count }}</div>
+            <div class="stat-card-label">&nbsp;&nbsp;Placed</div>
+          </div>
+
+          <div class="stat-card not-placed-card" role="listitem">
+            <span class="stat-card-icon" aria-hidden="true">❌</span>
+            <div
+              class="stat-card-value"
+              data-count="{{ not_placed_count }}"
+              aria-label="Not placed count: {{ not_placed_count }}"
+            >{{ not_placed_count }}</div>
+            <div class="stat-card-label">&nbsp;&nbsp;Not Placed</div>
+          </div>
+
         </div>
+      </section>
 
-    </div>
+      <!-- ── Ratio Bar ── -->
+      {% if total_predictions > 0 %}
+        {% set placed_pct = (placed_count / total_predictions * 100) | round(1) %}
+        <section class="ratio-card" aria-labelledby="ratio-title">
+          <div class="ratio-header">
+            <span class="ratio-title" id="ratio-title">Placed vs Not Placed Ratio</span>
+            <div class="ratio-legend" aria-hidden="true">
+              <div class="legend-item">
+                <span class="legend-dot green"></span>
+                Placed ({{ placed_pct }}%)
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot red"></span>
+                Not Placed ({{ (100 - placed_pct) | round(1) }}%)
+              </div>
+            </div>
+          </div>
+          <div
+            class="ratio-track"
+            role="progressbar"
+            aria-valuenow="{{ placed_pct | int }}"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-label="Placement ratio: {{ placed_pct }}% placed"
+          >
+            <div class="ratio-fill" data-pct="{{ placed_pct }}"></div>
+          </div>
+        </section>
+      {% endif %}
 
-    <table>
+      <!-- ── Predictions Table ── -->
+      <section class="table-card" aria-labelledby="table-title">
 
-        <tr>
-            <th>CGPA</th>
-            <th>Internships</th>
-            <th>Projects</th>
-            <th>Prediction</th>
-            <th>Probability</th>
-        </tr>
+        <!-- Table Header Row: title + count badge + action buttons -->
+        <div class="table-card-header">
+          <div class="table-card-title-group">
+            <h2 class="table-card-title" id="table-title">&nbsp;&nbsp;Prediction History</h2>
+            <span class="table-count-badge" aria-label="{{ total_predictions }} total records">
+              {{ total_predictions }} record{{ 's' if total_predictions != 1 else '' }}
+            </span>
+          </div>
 
-        {% for row in rows %}
+          <!-- Action Buttons — only show when there is data or DB is up -->
+          {% if not db_error %}
+            <div class="action-buttons" role="group" aria-label="Table actions">
 
-        <tr>
+              <!-- Export CSV Button -->
+              <a
+                href="/export_csv"
+                class="btn-action btn-export"
+                id="btn-export-csv"
+                aria-label="Export all predictions as CSV file"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Export CSV
+              </a>
 
-            <td>{{ row["cgpa"] }}</td>
-            <td>{{ row["internships"] }}</td>
-            <td>{{ row["projects"] }}</td>
-            <td>{{ row["prediction"] }}</td>
-            <td>{{ "%.2f"|format(row["probability"]) }}%</td>
+              <!-- Delete All Button — triggers a confirm dialog before submitting -->
+              {% if total_predictions > 0 %}
+                <form
+                  action="/delete_all"
+                  method="POST"
+                  id="delete-all-form"
+                  onsubmit="return confirmDelete()"
+                  style="display:inline;"
+                >
+                  <button
+                    type="submit"
+                    class="btn-action btn-danger"
+                    id="btn-delete-all"
+                    aria-label="Delete all predictions permanently"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                      <path d="M10 11v6M14 11v6"/>
+                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                    </svg>
+                    Delete All
+                  </button>
+                </form>
+              {% endif %}
 
-        </tr>
+            </div>
+          {% endif %}
+        </div><!-- /.table-card-header -->
 
-        {% endfor %}
+        {% if rows %}
+          <div role="region" aria-label="Prediction history table" tabindex="0" style="overflow-x:auto;">
+            <table class="data-table" aria-describedby="table-title">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">CGPA</th>
+                  <th scope="col">Internships</th>
+                  <th scope="col">Projects</th>
+                  <th scope="col">Workshops</th>
+                  <th scope="col">Certifications</th>
+                  <th scope="col">Aptitude</th>
+                  <th scope="col">Soft Skills</th>
+                  <th scope="col">Verdict</th>
+                  <th scope="col">Probability</th>
+                  <th scope="col">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in rows %}
+                <tr>
+                  <td style="color: var(--clr-text-3); font-weight:600;">
+                    {{ loop.index }}
+                  </td>
+                  <td style="font-weight:600;">{{ row["cgpa"] }}</td>
+                  <td>{{ row["internships"] }}</td>
+                  <td>{{ row["projects"] }}</td>
+                  <td>{{ row["workshops"] }}</td>
+                  <td>{{ row["certifications"] }}</td>
+                  <td>{{ row["aptitude_score"] }}</td>
+                  <td>{{ row["soft_skills_rating"] }}</td>
+                  <td>
+                    {% if "Not" in row["prediction"] %}
+                      <span class="status-badge not-placed-badge" aria-label="Not Placed">
+                        <span class="status-dot" aria-hidden="true"></span>
+                        Not Placed
+                      </span>
+                    {% else %}
+                      <span class="status-badge placed-badge" aria-label="Placed">
+                        <span class="status-dot" aria-hidden="true"></span>
+                        Placed
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="mini-prob" aria-label="{{ '%.2f' | format(row['probability']) }}% placement probability">
+                      <div class="mini-prob-bar" aria-hidden="true">
+                        <div
+                          class="mini-prob-fill"
+                          data-pct="{{ row['probability'] | round(1) }}"
+                          style="width:0%"
+                        ></div>
+                      </div>
+                      <span class="mini-prob-label">
+                        {{ "%.2f" | format(row["probability"]) }}%
+                      </span>
+                    </div>
+                  </td>
+                  <td style="color: var(--clr-text-3); font-size:0.78rem; white-space:nowrap;">
+                    {{ row["created_at"] }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
 
-    </table>
+        {% else %}
+          <!-- Empty state -->
+          <div class="empty-state" role="status" aria-live="polite">
+            <div class="empty-state-icon" aria-hidden="true">{% if db_error %}🔌{% else %}📭{% endif %}</div>
+            <h3 class="empty-state-title">
+              {% if db_error %}Database Offline{% else %}No Predictions Yet{% endif %}
+            </h3>
+            <p class="empty-state-desc">
+              {% if db_error %}
+                Ensure MySQL is running, then refresh this page.
+              {% else %}
+                Run your first prediction to see results appear here.
+              {% endif %}
+            </p>
+            {% if not db_error %}
+              <a href="/" class="btn-go-home" aria-label="Go to prediction form">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                  <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                </svg>
+                Go to Predictor
+              </a>
+            {% endif %}
+          </div>
+        {% endif %}
 
+      </section>
+
+    </main><!-- /.dashboard-page -->
+
+    <!-- ══════════════════════════════════════
+         FOOTER
+    ══════════════════════════════════════ -->
+    <footer class="footer" role="contentinfo">
+      <div class="footer-brand">
+        <span class="footer-name">Harsh Rana</span>
+        <span class="footer-tagline">Full-Stack Developer &amp; ML Engineer</span>
+      </div>
+
+      <nav class="footer-links" aria-label="External links">
+        <a
+          href="https://github.com/harshrana910"
+          class="footer-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub profile of Harsh Rana"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          GitHub
+        </a>
+
+        <a
+          href="https://linkedin.com/in/harshrana2004"
+          class="footer-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="LinkedIn profile of Harsh Rana"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          </svg>
+          LinkedIn
+        </a>
+      </nav>
+
+      <p class="footer-copy">
+        &copy; 2024 Harsh Rana · Placement Prediction System · Built with Flask &amp; Scikit-learn
+      </p>
+    </footer>
+
+  </div><!-- /.page-wrapper -->
+
+  <!-- Confirm dialog for Delete All — vanilla JS, no library needed -->
+  <script>
+    function confirmDelete() {
+      return window.confirm(
+        'Delete ALL predictions permanently?\n\nThis action cannot be undone.'
+      );
+    }
+  </script>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 
 </html>
