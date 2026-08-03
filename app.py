@@ -1,6 +1,6 @@
 from flask import (
     Flask, request, jsonify, render_template,
-    redirect, url_for, make_response
+    make_response
 )
 import pickle
 import numpy as np
@@ -277,31 +277,24 @@ def dashboard():
             conn.close()
 
 
-# ── Delete All Predictions ────────────────────────────────────────────────────
-@app.route("/delete_all", methods=["POST"])
+# ── Delete All — DISABLED FOR PRODUCTION ─────────────────────────────────────
+@app.route("/delete_all", methods=["GET", "POST"])
 def delete_all():
     """
-    Deletes every row from the predictions table.
-    Requires POST (not GET) to prevent accidental deletion via link.
-    Redirects back to the dashboard after completion.
+    This route is intentionally disabled for public/production deployments.
+
+    Accepting both GET and POST ensures that anyone who tries to call this
+    endpoint — whether via the old form, a curl command, or a direct URL —
+    always receives HTTP 403 Forbidden with a clear message.
+
+    The 'Delete All' button has been removed from the dashboard UI.
+    No database interaction is performed here.
     """
-    conn = get_db_connection()
-    if conn is None:
-        # Still redirect — the dashboard will show a DB error banner
-        return redirect(url_for("dashboard"))
-
-    try:
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM predictions")
-        conn.commit()
-        print("[DB INFO] All predictions deleted.")
-    except mysql.connector.Error as e:
-        print("[DB ERROR] Failed to delete predictions:", e)
-    finally:
-        if conn.is_connected():
-            conn.close()
-
-    return redirect(url_for("dashboard"))
+    return (
+        "403 Forbidden: The delete-all operation has been disabled "
+        "on this deployment.",
+        403
+    )
 
 
 # ── Export CSV ────────────────────────────────────────────────────────────────

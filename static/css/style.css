@@ -1348,7 +1348,7 @@ input, button { outline: none; }
 }
 
 /* =============================================================
-   ACTION BUTTONS (Export CSV + Delete All)
+   ACTION BUTTONS (Export CSV)
    ============================================================= */
 .action-buttons {
   display: flex;
@@ -1402,17 +1402,6 @@ input, button { outline: none; }
   color: #fff;
 }
 
-/* Delete All — red gradient */
-.btn-danger {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(239,68,68,0.35);
-}
-
-.btn-danger:hover {
-  box-shadow: 0 6px 22px rgba(239,68,68,0.5);
-  color: #fff;
-}
 
 /* Responsive: stack buttons on small screens */
 @media (max-width: 600px) {
